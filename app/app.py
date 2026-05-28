@@ -1,29 +1,30 @@
 import sys
 from pathlib import Path
 
-sys.path.append(
-    str(
-        Path(__file__).resolve().parent.parent
-    )
-)
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+sys.path.append(str(ROOT_DIR))
+sys.path.append(str(ROOT_DIR / "models"))
+sys.path.append(str(ROOT_DIR / "services"))
+sys.path.append(str(ROOT_DIR / "utils"))
 
 import streamlit as st
 
-from utils.constants import TICKERS
+from constants import TICKERS
 
-from utils.config import (
+from config import (
     GUERRA_START
 )
 
-from services.yahoo_service import (
+from yahoo_service import (
     download_market_data
 )
 
-from models.volatility.garch_engine import (
+from volatility.garch_engine import (
     fit_garch_x
 )
 
-from models.montecarlo.simulator import (
+from montecarlo.simulator import (
     run_monte_carlo
 )
 
