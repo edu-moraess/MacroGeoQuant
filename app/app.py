@@ -1,7 +1,7 @@
 import streamlit as st
 
 from utils.constants import TICKERS
-from utils.config import GUERRA_START
+from utils.config import GUERRA_START, SIMS, STEPS, MC_SEED
 
 from services.yahoo_service import download_market_data
 
@@ -13,21 +13,22 @@ from models.montecarlo.simulator import run_monte_carlo
 # CONFIG STREAMLIT
 # =========================
 st.set_page_config(
-    page_title="Macro GeoQuant",
+    page_title="MacroGeoQuant",
     layout="wide"
 )
 
-st.title("Macro Geopolitical Quant Platform")
+st.title("📊 Macro Geopolitical Quant Platform")
 st.markdown("---")
 
 
 # =========================
 # DATA
 # =========================
-prices = download_market_data(
-    TICKERS,
-    GUERRA_START
-)
+with st.spinner("Downloading market data..."):
+    prices = download_market_data(
+        TICKERS,
+        GUERRA_START
+    )
 
 st.subheader("Market Prices")
 st.dataframe(prices.tail())
@@ -42,7 +43,8 @@ returns = prices.pct_change().dropna()
 # =========================
 # GARCH VOLATILITY
 # =========================
-vol = fit_garch_x(returns["oil"])
+with st.spinner("Fitting GARCH model..."):
+    vol = fit_garch_x(returns["oil"])
 
 st.subheader("WTI Conditional Volatility")
 st.line_chart(vol)
@@ -51,15 +53,16 @@ st.line_chart(vol)
 # =========================
 # MONTE CARLO
 # =========================
-mc = run_monte_carlo(
-    spot=float(prices["oil"].iloc[-1]),
-    vol=float(vol.iloc[-1]),
-    sims=2000,
-    steps=30
-)
+with st.spinner("Running Monte Carlo simulation..."):
+    mc = run_monte_carlo(
+        spot=float(prices["oil"].iloc[-1]),
+        vol=float(vol.iloc[-1]),
+        sims=SIMS,
+        steps=STEPS,
+        seed=MC_SEED
+    )
 
 fan = mc["fan"]
-
 
 st.subheader("Monte Carlo Fan Chart")
 
@@ -94,4 +97,4 @@ col3.metric(
 
 st.markdown("---")
 
-st.success("MacroGeoQuant successfully loaded.")
+st.success("MacroGeoQuant loaded successfully 🚀")
