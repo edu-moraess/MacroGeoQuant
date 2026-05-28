@@ -1,1 +1,13 @@
 
+streamlit
+pandas
+numpy
+plotly
+matplotlib
+scipy
+statsmodels
+arch
+scikit-learn
+yfinance
+fredapi
+requests
