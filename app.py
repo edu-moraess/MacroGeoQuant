@@ -1,8 +1,12 @@
 import sys
 import os
 
+# =========================
+# PATH FIX (Streamlit Cloud safe)
+# =========================
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(ROOT_DIR)
+PARENT_DIR = os.path.abspath(os.path.join(ROOT_DIR, ".."))
+sys.path.append(PARENT_DIR)
 
 import streamlit as st
 
@@ -31,10 +35,11 @@ st.markdown("---")
 # DATA
 # =========================
 with st.spinner("Downloading market data..."):
-    prices = download_market_data(
-        TICKERS,
-        GUERRA_START
-    )
+    prices = download_market_data(TICKERS, GUERRA_START)
+
+if prices is None or prices.empty:
+    st.error("Failed to load market data.")
+    st.stop()
 
 st.subheader("Market Prices")
 st.dataframe(prices.tail())
@@ -45,12 +50,20 @@ st.dataframe(prices.tail())
 # =========================
 returns = prices.pct_change().dropna()
 
+if "oil" not in returns.columns:
+    st.error("Column 'oil' not found in dataset.")
+    st.stop()
+
 
 # =========================
 # GARCH VOLATILITY
 # =========================
 with st.spinner("Fitting GARCH model..."):
     vol = fit_garch_x(returns["oil"])
+
+if vol is None or len(vol) == 0:
+    st.error("GARCH model failed to compute volatility.")
+    st.stop()
 
 st.subheader("WTI Conditional Volatility")
 st.line_chart(vol)
@@ -59,6 +72,10 @@ st.line_chart(vol)
 # =========================
 # MONTE CARLO
 # =========================
+if "oil" not in prices.columns:
+    st.error("Oil price column missing.")
+    st.stop()
+
 with st.spinner("Running Monte Carlo simulation..."):
     mc = run_monte_carlo(
         spot=float(prices["oil"].iloc[-1]),
